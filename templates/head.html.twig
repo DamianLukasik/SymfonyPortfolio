@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="description" content="">
+<meta name="author" content="Damian Łukasik">
+<title>{% block title %}{% if title is not empty %}{{ title }}{% endif %}{% if subtitle is not empty %} - {{ subtitle }}{% endif %}{% endblock %}</title>
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('fontawesome-free-5.10.2-web/css/all.css') }}" crossorigin="anonymous">
+    <link rel="stylesheet" href="{{ asset('css/mainstyle.css') }}" crossorigin="anonymous">
+    <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}" crossorigin="anonymous">
+{% endblock %}
+{% block javascript %}
+    <script src="{{ asset('js/jquery.min.js') }}" crossorigin="anonymous"></script>    
+    <script src="{{ asset('js/bootstrap.min.js') }}" crossorigin="anonymous"></script> 
+{% endblock %}  

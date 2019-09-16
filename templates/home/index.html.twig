@@ -1,0 +1,24 @@
+{% include 'head.html.twig' %}
+{% block body %}
+{% include 'header.html.twig' %}
+
+<div class="main container">
+    <h1>         
+        {% if controller_name|default(null) %}
+        {% if controller_name is not empty %}
+            Hello {{ controller_name }}! ✅
+        {% endif %}   
+        {% endif %}    
+    </h1>
+
+    Witaj na mojej stronie wykorzystującą Symfony:
+    <ul>
+        <li>Przejrzyj Galerie z kotkami wykorzystującą Unsplash</li>
+        <li>Zobacz aktualny kurs walut pobrany prosto z Web API NBP</li>
+        <li>Może interesują Cię algorytmy uczenia maszynowego?</li>
+    </ul>
+
+    {% include 'element/quotation.html.twig' with {'text': 'O śmierci nie warto myśleć, bo ona bez naszej pomocy o nas myśli.', 'author': 'Henryk Sienkiewicz – Quo Vadis'} %}
+
+</div>
+{% endblock %}

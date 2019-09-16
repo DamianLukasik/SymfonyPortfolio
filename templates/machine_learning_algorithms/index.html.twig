@@ -1,0 +1,13 @@
+{% include 'head.html.twig' %}
+{% block body %}
+{% include 'header.html.twig' %}
+
+<div class="main container">
+
+    {% include 'element/quotation.html.twig' with {'text': 'Czy maszyny nie mogą dokonywać czegoś, co powinno być opisane jako myślenie, ale co jest bardzo różne od tego, co robi człowiek?', 'author': 'Alan Turing'} %}
+    <br>
+    {% include 'element/collapse.html.twig' with {'text':'Regresja liniowa','idek':'linearRegression','catalog':'machine_learning_algorithms' } %}
+    {% include 'element/collapse.html.twig' with {'text':'K najbliższych sąsiadów','idek':'KNearestNeighbors','catalog':'machine_learning_algorithms' } %}
+
+</div>
+{% endblock %}

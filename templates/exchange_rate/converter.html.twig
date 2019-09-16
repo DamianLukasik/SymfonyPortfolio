@@ -1,0 +1,55 @@
+<div>
+    <div class="form-group row">
+        <div class="col-sm-3">
+            <input id="moneyInAmount" type="text" class="form-control" id="inputPassword" placeholder="kwota wejściowa">
+        </div>
+        <div class="col-sm-2">
+            <select id="moneyInCurrency" class="form-control">
+                <option value="1">PLN</option>
+                {% for date in data %}
+                    {% set selected = '' %}
+                    <option value="{{ date['kurs'] }}" {{ selected }}>{{ date['kod'] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-sm-2 main-icon">
+            <i class="fas fa-arrows-alt-h"></i>
+        </div>
+        <div class="col-sm-3">
+            <input id="moneyOutAmount" type="text" class="form-control" id="inputPassword" placeholder="kwota wyjściowa">
+        </div>
+        <div class="col-sm-2">
+            <select id="moneyOutCurrency" class="form-control">
+                <option value="1">PLN</option>
+                {% for date in data %}
+                    {% set selected = '' %}
+                    <option value="{{ date['kurs'] }}" {{ selected }}>{{ date['kod'] }}</option>
+                {% endfor %}
+            </select>
+        </div>    
+    </div>
+</div>
+{% block javascripts %}
+    <script>
+        function convertMoney(in_,out_){
+            var money = $("#money"+in_+"Amount").val();
+            var curr1 = $("#money"+in_+"Currency option:selected").val();
+            var curr2 = $("#money"+out_+"Currency option:selected").val();
+            money = Math.round(((money*curr1)/curr2) * 100) / 100;
+            $("#money"+out_+"Amount").val(money);
+        }
+        $("#moneyOutAmount").keyup(function(){
+            convertMoney("Out","In");
+        });
+        $("#moneyInAmount").keyup(function(){
+            convertMoney("In","Out");
+        });
+        $("#moneyOutCurrency").change(function() {
+            convertMoney("Out","In");
+        });
+        $("#moneyInCurrency").change(function() {
+            convertMoney("In","Out");
+        });
+    </script>
+{% endblock %}
+

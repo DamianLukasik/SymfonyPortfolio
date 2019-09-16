@@ -1,0 +1,8 @@
+<h4 data-toggle="collapse" data-target="#{{ idek }}">{{ text }}</h4>
+<div id="{{ idek }}" class="collapse">
+    {% if catalog is defined %}
+        {% include catalog ~ '/'~ idek ~'.html.twig' %}
+    {% else %}
+        {% include idek ~'.html.twig' %}
+    {% endif %}
+</div>

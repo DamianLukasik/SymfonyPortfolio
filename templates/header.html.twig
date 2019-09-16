@@ -1,0 +1,34 @@
+<header>
+    <nav class="navbar navbar-expand-sm navbar-dark bg-chocolate">
+        {% if cache_communicate is defined %}
+            {% if cache_communicate is not empty and cache_communicate is not null and cache_communicate != ""  %}
+                <div class="communicate">{{ cache_communicate }}</div>
+            {% endif %}
+        {% endif %}
+        <div class="container">
+            {% if routes|default(null) and routes is not empty %}  
+            <ul class="navbar-nav mr-auto">
+            {% for path in routes %}
+                {% if path.src|default(null) and path.src is not empty %}
+                <li class="nav-item">
+                    <a class="navbar-brand" href="{{ path(path.src) }}">                    
+                        {% if path.name|default(null) and path.name is not empty %}      
+                            {% if icon|default(null) and icon is not empty %}<i class="fas fa-{{ icon }}"></i>{% set icon=null %}{% endif %} {{ path.name }}
+                        {% endif %}
+                    </a>
+                </li>
+                {% endif %}
+            {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+    </nav>
+</header>
+
+{% block javascripts %}
+    <script>
+        $(document).ready(function(){
+            console.log("Script working properly");
+        });
+    </script>
+{% endblock %}

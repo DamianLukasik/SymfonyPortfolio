@@ -1,0 +1,22 @@
+{% if columns is not iterable %}
+{% set columns = columns|split(',') %}
+{% endif %}
+
+<table class="table table-condensed table-light">
+    <thead>
+        <tr>
+        {% for column in columns %}
+        <th>{{ column }}</th>
+        {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+    {% for row in rows %}
+        <tr>
+        {% for column in columns %}
+        <td>{{ row[column] }}</td>
+        {% endfor %}
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>

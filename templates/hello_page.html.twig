@@ -1,0 +1,25 @@
+{% set variable = {
+    "controller_name": "Gusepe",
+    "title": "Provider",
+    "subtitle": "Strona główna",
+    "header": {
+        "paths": [ 
+            {"src":"hello_page","name":"Strona głowna", "icon": "coffee"}, 
+            {"src":"galery","name":"Galeria"}, 
+        ]
+    }
+} %}
+{% include 'head.html.twig' %}
+{% block body %}
+{% include 'header.html.twig' %}
+
+<div class="main">
+    <h1>         
+        {% if variable.controller_name|default(null) %}
+        {% if variable.controller_name is not empty %}
+            Hello {{ variable.controller_name }}
+        {% endif %}  
+        {% endif %}      
+    </h1>
+</div>
+{% endblock %}

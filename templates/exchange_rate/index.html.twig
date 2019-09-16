@@ -1,0 +1,21 @@
+{% include 'head.html.twig' %}
+{% block body %}
+{% include 'header.html.twig' %}
+
+<div class="main container">
+    <h1>         
+        {% if page_name|default(null) %}
+        {% if page_name is not empty %}
+            {{ page_name }}
+        {% endif %}   
+        {% endif %}    
+    </h1>
+
+    {{ description }}
+
+    {% include 'element/table.html.twig' with {'rows': content.rates, "columns": content.columns } %}
+
+    {% include 'exchange_rate/converter.html.twig' with {'data': content.rates } %}
+    
+</div>
+{% endblock %}

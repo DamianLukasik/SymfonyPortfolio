@@ -1,0 +1,69 @@
+{% set currentPage = null %}
+{% set currentPageClass = '' %}
+{% set PreviousPageClass = '' %}
+{% set NextPageClass = '' %}
+{% set printed_page = 0 %}
+{% if content is  not empty %} 
+{% if routes|default(null) and routes is not empty %}  
+<div class="row">
+    <div class="galery-panel">
+    {% if paginator.totalPages > 1 %}
+    <ul class="pagination">
+        {% if paginator.currentPage == 1 %}
+            {% set PreviousPageClass = ' disabled' %}
+        {% else %}
+            {% set PreviousPageClass = '' %}
+        {% endif %}
+        <li class="{{ PreviousPageClass }}"><a href="{{ paginator.urlPrevious }}">Previous</a></li>
+        {% for i in 1..paginator.totalPages %}
+            {% if i >= 1 and i < paginator.currentPage and i <= 3 %}
+            <li>
+                <a href="{{ paginator.urlPage|replace({'%page%': i }) }}">{{ i }}</a>
+            </li>
+            {% endif %}
+            {% if i > 3 and i <= 4 and i < paginator.currentPage %}
+            <li class="disabled">
+                <a href="#">...</a>
+            </li>
+            {% endif %}
+            {% if paginator.currentPage == i %}
+                {% set currentPageClass = ' active' %}
+            {% else %}
+                {% set currentPageClass = '' %}
+            {% endif %}
+            {% if i >= paginator.currentPage and i < (paginator.currentPage + 5) and i < (paginator.totalPages - 2) %}
+            <li class="{{ currentPageClass }}">
+                <a href="{{ paginator.urlPage|replace({'%page%': i }) }}">{{ i }}</a>
+            </li>
+            {% endif %}
+            {% if i >= (paginator.currentPage + 5) and i < (paginator.currentPage + 6) and i < (paginator.totalPages - 2) %}
+            <li class="disabled">
+                <a href="#">...</a>
+            </li>
+            {% endif %}
+            {% if i >= (paginator.totalPages - 2) or i == paginator.totalPages %}
+            <li class="{{ currentPageClass }}">
+                <a href="{{ paginator.urlPage|replace({'%page%': i }) }}">{{ i }}</a>
+            </li>
+            {% endif %}
+        {% endfor %}
+        {% if paginator.currentPage == paginator.totalPages %}
+            {% set NextPageClass = ' disabled' %}
+        {% else %}
+            {% set NextPageClass = '' %}
+        {% endif %}
+        <li class="{{ NextPageClass }}"><a href="{{ paginator.urlNext }}">Next</a></li>
+    </ul>
+    {% endif %}
+    </div>
+</div>
+{% endif %}
+<div class="row galery">
+    {% for item in content %}
+        <div class="col-12 col-sm-6 col-md-4 col-lg-4 col-xl-3">
+            <img src="{{item.urls.small}}" alt="{{item.name}}">
+            <h6>{{item.name}}</h6>
+        </div>
+    {% endfor %}
+</div>
+{% endif %}  
