@@ -152,3 +152,71 @@ table{
     text-align: center;
     font-size: x-large;
 }
+
+.canvasSpace{
+    text-align: center;
+    canvas{
+        border: 1px solid #7d624f;
+        width: 500px;
+        min-height: 500px;
+        margin: 20px;        
+    }
+    p.info{
+        text-align: center;
+        font-size: x-large;
+        font-weight: 600;
+        transform: rotate(0.65deg);
+        transition: transform 1s;
+        &:hover{
+            transform: rotate(1.65deg);
+        }
+    }
+}
+
+.mem{
+    div{
+        height: 100%;
+        display: grid;
+        p{
+            color: white;
+            text-shadow: 1px 1px 2px black;
+            font-size: 30px;
+            font-weight: 800;
+            text-align: center;
+            &:last-child{
+                bottom: 0px;
+                width: inherit;
+                font-weight: 700;
+                align-self: end;
+                margin: 0px;
+            }
+        }
+    }    
+    background-size: auto;    
+    height: 420px;
+    width: 420px;
+    padding: 20px 0px;
+    margin: auto;    
+    background-position: bottom;
+}
+
+hr{
+    margin-top: 0.65rem!important;
+    margin-bottom: 0.65rem!important;
+}
+
+.btn-chocolate {
+    color: #212529;
+    background-color: #53473f1c;
+    border-color: #53473f00;
+    border-width: 0px!important;
+    margin: 1px;
+    &:hover{
+        color: #212529;
+        background-color: #53473f42;
+        border-color: #53473f00;
+    }
+    &:focus{
+        box-shadow: 0 0 0 0.3rem inset #53473f42!important;
+    }
+}

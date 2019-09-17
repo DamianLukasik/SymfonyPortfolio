@@ -1,17 +1,76 @@
 <div>
     <div class="row">
         <div class="col-sm-8">            
-            < panel z parametrami >
-            [liczba elementów] []
+            <h5 id="parameters_header">Parametry</h5><hr>
+            <div class="row">
+                <div class="col-sm-6 col-md-6 col-lg-6 col-xl-3">
+                    <p id="PointsofCounts">Liczba punktów</p>						
+                </div>
+                <div class="col-sm-6 col-md-6 col-lg-6 col-xl-3">
+                    <input id="number_points_input" value="100" style="width: 100%;" type="number" name="tentacles" min="2" max="1000">					
+                </div>					
+            </div>
         </div>
         <div class="col-sm-4">            
-            < Akcje >
-            [Uruchom] [Wyczyść]
+            <h5 id="parameters_header">Akcje</h5><hr>
+            <div class="btn-group Linear_Regression">
+                <button id="generate_points" class="btn btn-chocolate" type="button"></button>
+                <button id="run" class="btn btn-chocolate" type="button"><i class="fas fa-play"></i> Wykonaj</button>
+            </div>
         </div>
     </div>
     <div class="row">
         <div class="col-sm-12">            
-            < Canvas >
+            {% include 'element/canvas.html.twig' with { 'idek':'linearRegressionCanvas' } %}            
         </div>
     </div>
 </div>
+
+<script type="text/babel">
+    var Counter = React.createClass({
+        getInitialState: function () {
+            return { clickCount: 0 };
+        },
+        GeneratePoints: function () {
+            this.setState(function(state) {
+                return {clickCount: state.clickCount + 1};
+            });
+        },
+        render: function () {
+            return (<div onClick={this.GeneratePoints}><i className="fas fa-dice"></i> Generuj punkty{this.state.clickCount}</div>);
+        }
+    });
+    
+    class CanvasComponent extends React.Component {        
+        componentDidMount() {
+            this.updateCanvas();            
+        }
+        updateCanvas() {
+            const ctx = this.refs.canvas.getContext('2d');
+            ctx.fillRect(10,10, 100, 100);
+        }
+        render() {
+            //title="XYZ";
+            //subtitle="ABS";
+            /**/
+            const imageUrl = `/img/janusz_mem.png`
+            const MemStyle = {
+                backgroundImage: `url(${imageUrl})`
+            };/**/
+            return (
+                <canvas ref="canvas" width={300} height={300}>
+                    <p className="info">Twoja przeglądarka nie obsługuje canvasa, sorry... hehe...</p>                    
+                    <div style={MemStyle} className="mem" >
+                        <div>
+                            <p>No i se poprogramował</p>
+                            <p>juniorze</p>
+                        </div>
+                    </div>
+                </canvas>
+            );
+        }
+    }
+    //kompozyt - jedna duża klasa zawierająca podklasy
+    ReactDOM.render(<Counter />,document.getElementById('generate_points'));
+    ReactDOM.render(<CanvasComponent/>, document.getElementById('linearRegressionCanvas'));/**/
+</script>
