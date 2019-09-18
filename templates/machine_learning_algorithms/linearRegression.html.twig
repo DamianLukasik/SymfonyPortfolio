@@ -1,76 +1,164 @@
-<div>
-    <div class="row">
-        <div class="col-sm-8">            
-            <h5 id="parameters_header">Parametry</h5><hr>
-            <div class="row">
-                <div class="col-sm-6 col-md-6 col-lg-6 col-xl-3">
-                    <p id="PointsofCounts">Liczba punktów</p>						
-                </div>
-                <div class="col-sm-6 col-md-6 col-lg-6 col-xl-3">
-                    <input id="number_points_input" value="100" style="width: 100%;" type="number" name="tentacles" min="2" max="1000">					
-                </div>					
-            </div>
-        </div>
-        <div class="col-sm-4">            
-            <h5 id="parameters_header">Akcje</h5><hr>
-            <div class="btn-group Linear_Regression">
-                <button id="generate_points" class="btn btn-chocolate" type="button"></button>
-                <button id="run" class="btn btn-chocolate" type="button"><i class="fas fa-play"></i> Wykonaj</button>
-            </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-sm-12">            
-            {% include 'element/canvas.html.twig' with { 'idek':'linearRegressionCanvas' } %}            
-        </div>
-    </div>
-</div>
+<div id="linearRegressionReact"></div>
 
 <script type="text/babel">
-    var Counter = React.createClass({
-        getInitialState: function () {
-            return { clickCount: 0 };
-        },
-        GeneratePoints: function () {
-            this.setState(function(state) {
-                return {clickCount: state.clickCount + 1};
-            });
-        },
-        render: function () {
-            return (<div onClick={this.GeneratePoints}><i className="fas fa-dice"></i> Generuj punkty{this.state.clickCount}</div>);
+
+    class LinearRegressionComponent extends React.Component {
+        constructor(props) {
+            super(props);
+            this.state = {
+                numberOfPoints: 100,
+                width: 300,
+                height: 300,
+                points: [],
+                colorOfPoints: "#143CDC",
+                line: null,
+                colorOfLine: "#DC143C",
+                widthOfLine: 0.65
+            };
+            this.onChangeNumberOfPoints = this.onChangeNumberOfPoints.bind(this);
+            this.onClickGeneratePoints = this.onClickGeneratePoints.bind(this);
+            this.onClickDrawRegressionLine = this.onClickDrawRegressionLine.bind(this);
         }
-    });
-    
-    class CanvasComponent extends React.Component {        
+        //helper
+        generateNumber(max_){
+            return Math.floor(Math.random() * max_);
+        }
+        resetCanvas(){
+            let points = this.state.points;
+            let line = null;
+            while(points.length > 0) {
+                points.pop();
+            }
+            this.setState({
+                points, line
+            });
+            const canvas = this.refs.canvas;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0,0,canvas.width, canvas.height);
+        }
+        addPoint(point){
+            let points = this.state.points;
+            points.push(point);
+            this.setState({
+                points
+            });
+        }
+        drawPoint(x,y){
+            const ctx = this.refs.canvas.getContext('2d');
+            ctx.beginPath();
+            ctx.strokeStyle = this.state.colorOfPoints;
+            ctx.arc(x, y, 0.65, 0, 2 * Math.PI);
+            ctx.stroke();
+        }
+        drawLine(){
+            const ctx = this.refs.canvas.getContext('2d');
+            ctx.beginPath();
+            ctx.strokeStyle = this.state.colorOfLine;
+            ctx.lineWidth = this.state.widthOfLine;
+            ctx.moveTo(this.state.line.begin.x,this.state.line.begin.y);
+            ctx.lineTo(this.state.line.end.x,this.state.line.end.y);
+            ctx.stroke();
+        }
+        //action
+        onClickGeneratePoints(event) {
+            const ctx = this.refs.canvas.getContext('2d');
+            this.resetCanvas();
+            for (var i = 0; i < this.state.numberOfPoints; i++) {
+                var x = this.generateNumber(this.state.width);
+                var y = this.state.height-this.generateNumber(this.state.height);
+                this.addPoint({x: x, y: y});
+                this.drawPoint(x,y);
+            }
+        }
+        onClickDrawRegressionLine(event) {
+            const ctx = this.refs.canvas.getContext('2d');
+            //opracować w domu algorytm regresji liniowej
+
+            //draw line
+            if(this.state.points.length > 0 && this.state.line==null) {
+                let begin = {x:0,y:0};
+                let end = {x:300,y:300};
+                this.state.line={begin,end};
+                this.drawLine();
+            }
+        }
+        onChangeNumberOfPoints(event) {
+            this.setState({
+                numberOfPoints: event.target.value
+            });
+        }
+        //Canvas
         componentDidMount() {
             this.updateCanvas();            
         }
         updateCanvas() {
             const ctx = this.refs.canvas.getContext('2d');
-            ctx.fillRect(10,10, 100, 100);
+            this.resetCanvas();
+            //ctx.fillRect(100,100, 100, 100);//rysuje duży czarny kwadrat
         }
         render() {
-            //title="XYZ";
-            //subtitle="ABS";
-            /**/
             const imageUrl = `/img/janusz_mem.png`
             const MemStyle = {
                 backgroundImage: `url(${imageUrl})`
-            };/**/
+            };
+            const InputStyle = {
+                width: `100%`
+            };
             return (
-                <canvas ref="canvas" width={300} height={300}>
-                    <p className="info">Twoja przeglądarka nie obsługuje canvasa, sorry... hehe...</p>                    
-                    <div style={MemStyle} className="mem" >
-                        <div>
-                            <p>No i se poprogramował</p>
-                            <p>juniorze</p>
+                <div>
+                    <div className="row">
+                        <div className="col-sm-8">            
+                            <h5 id="parameters_header">Parametry</h5><hr/>
+                            <div className="row">
+                                <div className="col-sm-6 col-md-6 col-lg-6 col-xl-3">
+                                    <p id="PointsofCounts">Liczba punktów</p>						
+                                </div>
+                                <div className="col-sm-6 col-md-6 col-lg-6 col-xl-3">
+                                    <input
+                                        id="number_points_input" 
+                                        style={InputStyle}
+                                        type="number"
+                                        min="2" 
+                                        max="1000"
+                                        value={this.state.numberOfPoints}
+                                        onChange={this.onChangeNumberOfPoints.bind(this)}
+                                    />
+                                </div>					
+                            </div>
+                        </div>
+                        <div className="col-sm-4">            
+                            <h5 id="parameters_header">Akcje</h5><hr/>
+                            <div className="btn-group Linear_Regression">
+                                <button id="generate_points" onClick={this.onClickGeneratePoints.bind(this)} className="btn btn-chocolate" type="button">
+                                    <i className="fas fa-dice"></i> Generuj punkty
+                                </button>
+                                <button id="run" onClick={this.onClickDrawRegressionLine.bind(this)} className="btn btn-chocolate" type="button">
+                                    <i className="fas fa-play"></i> Wykonaj
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </canvas>
+                    <div className="row">
+                        <div className="col-sm-12">            
+                            <div className="canvasSpace" id="linearRegressionCanvas">
+                                <canvas ref="canvas" width={this.state.width} height={this.state.height}>
+                                    <p className="info">Twoja przeglądarka nie obsługuje canvasa, sorry... hehe...</p>                    
+                                    <div style={MemStyle} className="mem" >
+                                        <div>
+                                            <p>No i se poprogramował</p>
+                                            <p>juniorze</p>
+                                        </div>
+                                    </div>
+                                </canvas>
+                            </div>            
+                        </div>
+                    </div>
+                </div>
             );
         }
     }
-    //kompozyt - jedna duża klasa zawierająca podklasy
-    ReactDOM.render(<Counter />,document.getElementById('generate_points'));
-    ReactDOM.render(<CanvasComponent/>, document.getElementById('linearRegressionCanvas'));/**/
+
+    ReactDOM.render(<LinearRegressionComponent/>, document.getElementById('linearRegressionReact'));/**/
 </script>
