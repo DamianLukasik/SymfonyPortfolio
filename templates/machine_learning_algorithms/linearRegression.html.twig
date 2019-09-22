@@ -10,27 +10,36 @@
                 width: 300,
                 height: 300,
                 points: [],
+                correct_points: [],
                 colorOfPoints: "#143CDC",
                 line: null,
                 colorOfLine: "#DC143C",
-                widthOfLine: 0.65
+                widthOfLine: 0.65,
+                learningRate: 0.0001,
+                numIterations: 100
             };
             this.onChangeNumberOfPoints = this.onChangeNumberOfPoints.bind(this);
             this.onClickGeneratePoints = this.onClickGeneratePoints.bind(this);
             this.onClickDrawRegressionLine = this.onClickDrawRegressionLine.bind(this);
+            this.onChangeNumIterations = this.onChangeNumIterations.bind(this);
+            this.onChangeLearningRate = this.onChangeLearningRate.bind(this);
         }
         //helper
         generateNumber(max_){
             return Math.floor(Math.random() * max_);
         }
         resetCanvas(){
-            let points = this.state.points;
             let line = null;
+            let points = this.state.points;            
             while(points.length > 0) {
                 points.pop();
             }
+            let correct_points = this.state.correct_points;            
+            while(correct_points.length > 0) {
+                correct_points.pop();
+            }
             this.setState({
-                points, line
+                points, line, correct_points
             });
             const canvas = this.refs.canvas;
             const ctx = canvas.getContext('2d');
@@ -45,10 +54,17 @@
                 points
             });
         }
-        drawPoint(x,y){
+        addCorrectPoint(point){
+            let correct_points = this.state.correct_points;
+            correct_points.push(point);
+            this.setState({
+                correct_points
+            });
+        }
+        drawPoint(x,y,color=this.state.colorOfPoints){
             const ctx = this.refs.canvas.getContext('2d');
             ctx.beginPath();
-            ctx.strokeStyle = this.state.colorOfPoints;
+            ctx.strokeStyle = color;
             ctx.arc(x, y, 0.65, 0, 2 * Math.PI);
             ctx.stroke();
         }
@@ -61,7 +77,79 @@
             ctx.lineTo(this.state.line.end.x,this.state.line.end.y);
             ctx.stroke();
         }
-        //action
+        //Linear Regression
+        getGradientAtB(x,y,current){
+            var diff=0;
+            var N=x.length;//console.log("B N"+N);
+            var i_=1;
+            for(var i=0;i<N;i++){
+                diff+=y[i]-((current.m*x[i])+current.b);
+            }
+            var b_gradient=(-2/N)*diff;//console.log("b_gradient "+b_gradient);
+            return b_gradient;
+        }
+        getGradientAtM(x,y,current){
+            var diff=0;
+            var N=x.length;//console.log("M N"+N);
+            for(var i=0;i<N;i++){
+                diff+=x[i]*(y[i]-(current.m*x[i]+current.b));
+            }
+            var m_gradient=diff*(-2/N);//console.log("m_gradient "+m_gradient);
+            return m_gradient;
+        }
+        stepGradient(current,x,y,learningRate){
+            var b_gradient = this.getGradientAtB(x,y,current);
+            var m_gradient = this.getGradientAtM(x,y,current);
+            var b=current.b-(learningRate*b_gradient);
+            var m=current.m-(learningRate*m_gradient);
+            return {b:b,m:m};
+        }
+        gradientDescent(x,y,numIterations,learningRate){
+            var result={b:0,m:0};
+            var break_=false;
+            for(var i=0;i<numIterations;i++){
+                result = this.stepGradient(result,x,y,learningRate);
+                for(var k=0;k<x.length;k++){
+                    this.drawPoint(x[k],result.m*x[k]+result.b,'crimson');
+                } 
+            }
+            return result;
+        }
+        //action        
+        onClickDrawRegressionLine(event) {
+            const ctx = this.refs.canvas.getContext('2d');
+            //console.log(this.state.points);
+            //opracować w domu algorytm regresji liniowej
+            let x = this.state.points.map(function(elem) {
+                return elem.x;
+            });
+            let y = this.state.points.map(function(elem) {
+                return elem.y;
+            });
+            var result = this.gradientDescent(x,y,this.state.numIterations,this.state.learningRate);
+            for(var i=0;i<x.length;i++){
+                y[i] = result.m*x[i]+result.b;
+            }      
+            //console.log(y);
+            for(var i=0;i<x.length;i++){
+                this.drawPoint(x[i],y[i],'red');
+                this.addCorrectPoint({x: x[i], y: y[i]});
+            }       
+            //draw line
+            let N = this.state.points.length-1;
+            this.state.correct_points = this.state.correct_points.sort((a, b) => {
+                return b.x - a.x;
+            });
+            //console.log(this.state.correct_points);
+            if(this.state.correct_points.length > 0 && this.state.line==null) {                
+                for(var i=0;i<this.state.correct_points.length-1;i++){
+                    var begin = {x:this.state.correct_points[i].x,y:this.state.correct_points[i].y};
+                    var end = {x:this.state.correct_points[i+1].x,y:this.state.correct_points[i+1].y};
+                    this.state.line={begin,end};
+                    this.drawLine();
+                } 
+            }
+        }
         onClickGeneratePoints(event) {
             const ctx = this.refs.canvas.getContext('2d');
             this.resetCanvas();
@@ -71,22 +159,23 @@
                 this.addPoint({x: x, y: y});
                 this.drawPoint(x,y);
             }
-        }
-        onClickDrawRegressionLine(event) {
-            const ctx = this.refs.canvas.getContext('2d');
-            //opracować w domu algorytm regresji liniowej
-
-            //draw line
-            if(this.state.points.length > 0 && this.state.line==null) {
-                let begin = {x:0,y:0};
-                let end = {x:300,y:300};
-                this.state.line={begin,end};
-                this.drawLine();
-            }
+            this.state.points = this.state.points.sort((a, b) => {
+                return b.x - a.x;
+            });
         }
         onChangeNumberOfPoints(event) {
             this.setState({
                 numberOfPoints: event.target.value
+            });
+        }
+        onChangeNumIterations(event) {
+            this.setState({
+                numIterations: event.target.value
+            });
+        }
+        onChangeLearningRate(event) {
+            this.setState({
+                learningRate: event.target.value
             });
         }
         //Canvas
@@ -124,6 +213,37 @@
                                         max="1000"
                                         value={this.state.numberOfPoints}
                                         onChange={this.onChangeNumberOfPoints.bind(this)}
+                                    />
+                                </div>					
+                            </div>
+                            <div className="row">
+                                <div className="col-sm-6 col-md-6 col-lg-6 col-xl-3">
+                                    <p id="PointsofCounts">Liczba kroków</p>						
+                                </div>
+                                <div className="col-sm-6 col-md-6 col-lg-6 col-xl-3">
+                                    <input
+                                        id="num_iterations_input" 
+                                        style={InputStyle}
+                                        type="number"
+                                        value={this.state.numIterations}
+                                        onChange={this.onChangeNumIterations.bind(this)}
+                                    />
+                                </div>					
+                            </div>
+                            <div className="row">
+                                <div className="col-sm-6 col-md-6 col-lg-6 col-xl-3">
+                                    <p id="PointsofCounts">Wielkość kroku</p>						
+                                </div>
+                                <div className="col-sm-6 col-md-6 col-lg-6 col-xl-3">
+                                    <input
+                                        id="learning_rate_input" 
+                                        style={InputStyle}
+                                        type="number"
+                                        step="0.0001" 
+                                        min="0" 
+                                        max="1"
+                                        value={this.state.learningRate}
+                                        onChange={this.onChangeLearningRate.bind(this)}
                                     />
                                 </div>					
                             </div>
