@@ -65,7 +65,7 @@
             const ctx = this.refs.canvas.getContext('2d');
             ctx.beginPath();
             ctx.strokeStyle = color;
-            ctx.arc(x, y, 0.65, 0, 2 * Math.PI);
+            ctx.arc(x, this.refs.canvas.height-y, 0.65, 0, 2 * Math.PI);
             ctx.stroke();
         }
         drawLine(){
@@ -73,15 +73,14 @@
             ctx.beginPath();
             ctx.strokeStyle = this.state.colorOfLine;
             ctx.lineWidth = this.state.widthOfLine;
-            ctx.moveTo(this.state.line.begin.x,this.state.line.begin.y);
-            ctx.lineTo(this.state.line.end.x,this.state.line.end.y);
+            ctx.moveTo(this.state.line.begin.x,this.refs.canvas.height-this.state.line.begin.y);
+            ctx.lineTo(this.state.line.end.x,this.refs.canvas.height-this.state.line.end.y);
             ctx.stroke();
         }
         //Linear Regression
         getGradientAtB(x,y,current){
             var diff=0;
             var N=x.length;//console.log("B N"+N);
-            var i_=1;
             for(var i=0;i<N;i++){
                 diff+=y[i]-((current.m*x[i])+current.b);
             }
@@ -106,9 +105,13 @@
         }
         gradientDescent(x,y,numIterations,learningRate){
             var result={b:0,m:0};
+            /*console.log(x,y);
+            console.log(result);
+            console.log('---');*/
             var break_=false;
             for(var i=0;i<numIterations;i++){
                 result = this.stepGradient(result,x,y,learningRate);
+                //console.log(result);
                 for(var k=0;k<x.length;k++){
                     this.drawPoint(x[k],result.m*x[k]+result.b,'crimson');
                 } 
