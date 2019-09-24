@@ -16,13 +16,16 @@
                 colorOfLine: "#DC143C",
                 widthOfLine: 0.65,
                 learningRate: 0.0001,
-                numIterations: 100
+                numIterations: 100,
+                autoIncreaseStep: false
             };
             this.onChangeNumberOfPoints = this.onChangeNumberOfPoints.bind(this);
             this.onClickGeneratePoints = this.onClickGeneratePoints.bind(this);
             this.onClickDrawRegressionLine = this.onClickDrawRegressionLine.bind(this);
             this.onChangeNumIterations = this.onChangeNumIterations.bind(this);
             this.onChangeLearningRate = this.onChangeLearningRate.bind(this);
+            this.onChangeAutoIncreaseStep = this.onChangeAutoIncreaseStep.bind(this);
+            this.onClickClearRegressionLine = this.onClickClearRegressionLine.bind(this);
         }
         //helper
         generateNumber(max_){
@@ -77,80 +80,135 @@
             ctx.lineTo(this.state.line.end.x,this.refs.canvas.height-this.state.line.end.y);
             ctx.stroke();
         }
-        //Linear Regression
-        getGradientAtB(x,y,current){
-            var diff=0;
-            var N=x.length;//console.log("B N"+N);
-            for(var i=0;i<N;i++){
-                diff+=y[i]-((current.m*x[i])+current.b);
+        //Linear Regression using gradient
+        sum(v){
+            var sum=0;
+            var M=v.length;
+            for(var k=0;k<M;k++){
+                sum+=v[k];
             }
-            var b_gradient=(-2/N)*diff;//console.log("b_gradient "+b_gradient);
-            return b_gradient;
+            return sum;
         }
-        getGradientAtM(x,y,current){
-            var diff=0;
-            var N=x.length;//console.log("M N"+N);
-            for(var i=0;i<N;i++){
-                diff+=x[i]*(y[i]-(current.m*x[i]+current.b));
+        pred_y(m,b,x){
+            var y=[];
+            var M=x.length;
+            for(var k=0;k<M;k++){
+                y[k]=m*x[k]+b;
             }
-            var m_gradient=diff*(-2/N);//console.log("m_gradient "+m_gradient);
-            return m_gradient;
+            return y;
         }
-        stepGradient(current,x,y,learningRate){
-            var b_gradient = this.getGradientAtB(x,y,current);
-            var m_gradient = this.getGradientAtM(x,y,current);
-            var b=current.b-(learningRate*b_gradient);
-            var m=current.m-(learningRate*m_gradient);
-            return {b:b,m:m};
+        D_m(x,D_b_arr){
+            // * sum(X * (Y - Y_pred))
+            var t=[];
+            var M=x.length;
+            for(var k=0;k<M;k++){
+                t[k]=x[k] * D_b_arr[k];
+            }
+            return t;
+        }
+        D_b(y,Y_pred){
+            // * sum(Y - Y_pred)
+            var t=[];
+            var M=y.length;
+            for(var k=0;k<M;k++){
+                t[k]=(y[k] - Y_pred[k]);
+            }
+            return t;
         }
         gradientDescent(x,y,numIterations,learningRate){
-            var result={b:0,m:0};
-            /*console.log(x,y);
-            console.log(result);
-            console.log('---');*/
-            var break_=false;
-            for(var i=0;i<numIterations;i++){
-                result = this.stepGradient(result,x,y,learningRate);
-                //console.log(result);
-                for(var k=0;k<x.length;k++){
-                    this.drawPoint(x[k],result.m*x[k]+result.b,'crimson');
-                } 
+            var M = x.length;
+            var m = 0;
+            var b = 0;
+            var M2 = (-2/M);
+            for(var k=0;k<numIterations;k++){
+                for(var i=0;i<M;i++){
+                    var Y_pred = this.pred_y(m,b,x);
+                    var D_b_arr = this.D_b(y,Y_pred);
+                    var D_m = M2 * this.sum(this.D_m(x,D_b_arr));
+                    var D_b = M2 * this.sum(D_b_arr);
+                    var m = m - learningRate * D_m;
+                    var b = b - learningRate * D_b;
+                }
             }
-            return result;
+            return {b:b,m:m};            
         }
-        //action        
+        //action   
+        onClickClearRegressionLine(event) {
+            let line = null;
+            let correct_points = this.state.correct_points;            
+            while(correct_points.length > 0) {
+                correct_points.pop();
+            }
+            this.setState({
+                line, correct_points
+            });
+            const canvas = this.refs.canvas;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0,0,canvas.width, canvas.height);
+            let points = this.state.points;
+            for (var i = 0; i < this.state.numberOfPoints; i++) {
+                this.drawPoint(points[i].x,points[i].y);
+            }
+        }     
         onClickDrawRegressionLine(event) {
             const ctx = this.refs.canvas.getContext('2d');
-            //console.log(this.state.points);
-            //opracować w domu algorytm regresji liniowej
             let x = this.state.points.map(function(elem) {
                 return elem.x;
             });
             let y = this.state.points.map(function(elem) {
                 return elem.y;
             });
-            var result = this.gradientDescent(x,y,this.state.numIterations,this.state.learningRate);
+            var diff_between_b=0;
+            var old_result=null;
+            var count=0;
+            while(diff_between_b>=0){
+                //finding the best line
+                console.log(count,result,old_result,diff_between_b);
+                var result = this.gradientDescent(x,y,this.state.numIterations,this.state.learningRate);
+                if(result.b==NaN){
+                    if(old_result!=null){
+                        result=old_result;
+                    }
+                    break;
+                }
+                if(old_result!=null){
+                    diff_between_b=Math.abs(old_result.b-result.b);
+                    if(diff_between_b<=0.05 || this.state.numIterations>=10000){
+                        break;
+                    }
+                }
+                old_result=result;                
+                for(var i=0;i<x.length;i++){
+                    y[i] = x[i]*result.m+result.b;
+                    this.drawPoint(x[i],y[i],'#D07A7A');
+                }
+                if(!this.state.autoIncreaseStep){
+                    break;
+                }
+                this.state.numIterations=parseInt(this.state.numIterations)+100;
+                console.log(this.state.numIterations);
+                count+=1;
+            }
             for(var i=0;i<x.length;i++){
-                y[i] = result.m*x[i]+result.b;
-            }      
-            //console.log(y);
-            for(var i=0;i<x.length;i++){
+                y[i] = x[i]*result.m+result.b;
                 this.drawPoint(x[i],y[i],'red');
                 this.addCorrectPoint({x: x[i], y: y[i]});
-            }       
+            }
             //draw line
             let N = this.state.points.length-1;
             this.state.correct_points = this.state.correct_points.sort((a, b) => {
                 return b.x - a.x;
             });
             //console.log(this.state.correct_points);
-            if(this.state.correct_points.length > 0 && this.state.line==null) {                
+            if(this.state.correct_points.length > 0 && this.state.line==null) {
                 for(var i=0;i<this.state.correct_points.length-1;i++){
                     var begin = {x:this.state.correct_points[i].x,y:this.state.correct_points[i].y};
                     var end = {x:this.state.correct_points[i+1].x,y:this.state.correct_points[i+1].y};
                     this.state.line={begin,end};
                     this.drawLine();
-                } 
+                }
             }
         }
         onClickGeneratePoints(event) {
@@ -179,6 +237,11 @@
         onChangeLearningRate(event) {
             this.setState({
                 learningRate: event.target.value
+            });
+        }        
+        onChangeAutoIncreaseStep(event) {
+            this.setState({
+                autoIncreaseStep: !this.state.autoIncreaseStep
             });
         }
         //Canvas
@@ -250,6 +313,19 @@
                                     />
                                 </div>					
                             </div>
+                            <div className="row">
+                                <div className="col-sm-12 col-md-12 col-lg-12 col-xl-6">
+                                    <label class="form-check-label" for="check2">
+                                        <input 
+                                            type="checkbox"
+                                            className="form-check-input"
+                                            defaultChecked={this.state.autoIncreaseStep}
+                                            onChange={this.onChangeAutoIncreaseStep.bind(this)}
+                                        />
+                                        <p id="PointsofCounts">Automatyczne zwiększanie liczby kroków</p>
+                                    </label>					
+                                </div>                                
+                            </div>
                         </div>
                         <div className="col-sm-4">            
                             <h5 id="parameters_header">Akcje</h5><hr/>
@@ -259,6 +335,11 @@
                                 </button>
                                 <button id="run" onClick={this.onClickDrawRegressionLine.bind(this)} className="btn btn-chocolate" type="button">
                                     <i className="fas fa-play"></i> Wykonaj
+                                </button>
+                            </div>
+                            <div className="btn-group Linear_Regression">
+                                <button id="clearLine" onClick={this.onClickClearRegressionLine.bind(this)} className="btn btn-chocolate" type="button">
+                                    <i className="fas fa-broom"></i> Usuń linię
                                 </button>
                             </div>
                         </div>
